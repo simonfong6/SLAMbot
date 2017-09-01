@@ -1,37 +1,36 @@
-WHITE = 8 %Unexlpored
-RED = 2; %Car part that touches table
-BLACK = 1; %Car body
-BLUE = 3; %Ultra sonic sensors
-GREEN = 4; %Terrain
-YELLOW = 7; %No Object
-CYAN = 5; %Ocean/Edge
-MAGENTA = 6; %Object
+global UNKNOWN;
+global CARCRITICAL;
+global CARBODY;
+global SONIC;
+global TERRAIN;
+global NOOBJECT;
+global EDGE;
+global OBJECT;
+UNKNOWN = 8;        %White
+CARCRITICAL = 2;    %Red
+CARBODY = 1;        %Black
+SONIC = 3;          %Blue
+TERRAIN = 4;        %Green
+NOOBJECT = 7;       %Yellow
+EDGE = 5;           %Cyan
+OBJECT = 6;         %Magenta
 
-A(1:100,1:100) = WHITE;
-x = 50;
-y = 50;
 
-A = initMap(x,y,A);
-showMap(x,y,A);
-
-for i = 1:40
-    pause(1);
-    A = updateMap(x+i,y,A);
-    showMap(x+i,y,A);
-end
+main()
 
 
 
-function showMap(x,y,A)
-    WHITE = 8 %Unexlpored
-    RED = 2; %Car part that touches table
-    BLACK = 1; %Car body
-    BLUE = 3; %Ultra sonic sensors
-    GREEN = 4; %Terrain
-    YELLOW = 7; %No Object
-    CYAN = 5; %Ocean/Edge
-    MAGENTA = 6; %Object
-    map = [0,0,0
+function main();
+    global UNKNOWN;
+    global CARCRITICAL;
+    global CARBODY;
+    global SONIC;
+    global TERRAIN;
+    global NOOBJECT;
+    global EDGE;
+    global OBJECT;
+    
+    mapColor = [0,0,0
            1,0,0
            0,0,1
            0,1,0
@@ -39,33 +38,57 @@ function showMap(x,y,A)
            1,0,1
            1,1,0
            1,1,1];
-    colormap(map);
+    colormap(mapColor);
+    
+    map(1:100,1:100) = UNKNOWN;
+    x = 50;
+    y = 50;
+    map = initMap(x,y,map);
+    showMap(x,y,map);
+    for i = 1:40
+        pause(1);
+        map = updateMap(x+i,y+i,map);
+        showMap(x+i,y+i,map);
+    end
+end
+
+
+
+function showMap(x,y,map);
+    global UNKNOWN;
+    global CARCRITICAL;
+    global CARBODY;
+    global SONIC;
+    global TERRAIN;
+    global NOOBJECT;
+    global EDGE;
+    global OBJECT;
     
     %Center Block
-	A(x:x+1,y:y+1) = RED;
+	map(x:x+1,y:y+1) = CARCRITICAL;
 	
 	%Left Wheel
-	A(x-3:x-1,y+3) = RED;
+	map(x-3:x-1,y+3) = CARCRITICAL;
 	
 	%Right Wheel
-	A(x-3:x-1,y-2) = RED;
+	map(x-3:x-1,y-2) = CARCRITICAL;
 	
 	
 	%Body
-	A(x-3:x-1,y-1:y+2) = BLACK;
-    A(x:x+1,y-1) = BLACK;
-    A(x:x+1,y+2) = BLACK;
-    A(x+2,y-1:y+2) = BLACK;
+	map(x-3:x-1,y-1:y+2) = CARBODY;
+    map(x:x+1,y-1) = CARBODY;
+    map(x:x+1,y+2) = CARBODY;
+    map(x+2,y-1:y+2) = CARBODY;
     
     %Ultrasonic Sensors
-    A(x+1:x+2,y+3) = BLUE;
-    A(x+1:x+2,y-2) = BLUE;
-    A(x+3,y:y+1) = BLUE;
+    map(x+1:x+2,y+3) = SONIC;
+    map(x+1:x+2,y-2) = SONIC;
+    map(x+3,y:y+1) = SONIC;
     
     
     
     % get the handle to the image
-    hImg = image(flipud(transpose(A)));
+    hImg = image(flipud(transpose(map)));
     % get the handle to the parent axes
     hAxs = get(hImg,'Parent');
     % reverse the order of the y-axis tick labels
@@ -75,64 +98,85 @@ function showMap(x,y,A)
   
 end
 
-function matrix = initMap(x,y,A);
-    GREEN = 4;  %Terrain
+function updatedMap = initMap(x,y,map);
+    global UNKNOWN;
+    global CARCRITICAL;
+    global CARBODY;
+    global SONIC;
+    global TERRAIN;
+    global NOOBJECT;
+    global EDGE;
+    global OBJECT;
     %Center Block
-	A(x:x+1,y:y+1) = GREEN;
+	map(x:x+1,y:y+1) = TERRAIN;
 	
 	%Left Wheel
-	A(x-3:x-1,y+3) = GREEN;
+	map(x-3:x-1,y+3) = TERRAIN;
 	
 	%Right Wheel
-	A(x-3:x-1,y-2) = GREEN;
+	map(x-3:x-1,y-2) = TERRAIN;
 	
 	
 	%Body
-	A(x-3:x-1,y-1:y+2) = GREEN;
-    A(x:x+1,y-1) = GREEN;
-    A(x:x+1,y+2) = GREEN;
-    A(x+2,y-1:y+2) = GREEN;
+	map(x-3:x-1,y-1:y+2) = TERRAIN;
+    map(x:x+1,y-1) = TERRAIN;
+    map(x:x+1,y+2) = TERRAIN;
+    map(x+2,y-1:y+2) = TERRAIN;
     
-    matrix = A;
+    updatedMap = map;
 end
 
-function updatedMap = updateMap(x,y,map)
+function updatedMap = updateMap(x,y,map);
+    global UNKNOWN;
+    global CARCRITICAL;
+    global CARBODY;
+    global SONIC;
+    global TERRAIN;
+    global NOOBJECT;
+    global EDGE;
+    global OBJECT;
     POSX = 0;   %Positive X
     NEGX = 1;   %Negative X
     POSY = 2;   %Positive Y
     NEGY = 3;   %Negative Y
     
-    GREEN = 4; %Terrain
-    CYAN = 5; %Ocean/Edge
-    YELLOW = 7; %No Object
     
     if 1
-        left = GREEN;
+        left = TERRAIN;
     else
-        left = CYAN;
+        left = EDGE;
     end
     if 1
-        right = GREEN;
+        right = TERRAIN;
     else
-        right = CYAN;
+        right = EDGE;
     end
     if 1
-        frontDown = GREEN;
+        frontDown = TERRAIN;
     else
-        frontDown = CYAN;
+        frontDown = EDGE;
     end
     if 1
         n = 10;
-        frontObject = YELLOW;
+        frontObject = NOOBJECT;
     end
     
     dir = POSX;
+    %If we are facing in the postive X.
     if dir == POSX
         map(x+1:x+2,y+3) = left;
         map(x+1:x+2,y-2) = right;
         map(x+3,y:y+1) = frontDown;
         map(x+4:x+n,y:y+1) = frontObject;
+    elseif dir == NEGX
+        map(x-2:x-1,y+3) = left;
+        map(x+1:x+2,y-2) = right;
+        map(x+3,y:y+1) = frontDown;
+        map(x+4:x+n,y:y+1) = frontObject;
+    elseif dir == POSY
+    elseif dir == NEGY
     end
+    
     
     updatedMap = map;
 end
