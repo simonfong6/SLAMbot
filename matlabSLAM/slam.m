@@ -16,6 +16,7 @@ showMap(x,y,A);
 
 for i = 1:40
     pause(1);
+    A = updateMap(x+i,y,A);
     showMap(x+i,y,A);
 end
 
@@ -93,4 +94,44 @@ function matrix = initMap(x,y,A);
     A(x+2,y-1:y+2) = GREEN;
     
     matrix = A;
+end
+
+function updatedMap = updateMap(x,y,map)
+    POSX = 0;   %Positive X
+    NEGX = 1;   %Negative X
+    POSY = 2;   %Positive Y
+    NEGY = 3;   %Negative Y
+    
+    GREEN = 4; %Terrain
+    CYAN = 5; %Ocean/Edge
+    YELLOW = 7; %No Object
+    
+    dir = POSX;
+    if dir == POSX
+        if 1
+            left = GREEN;
+        else
+            left = CYAN;
+        end
+        if 1
+            right = GREEN;
+        else
+            right = CYAN;
+        end
+        if 1
+            frontDown = GREEN;
+        else
+            frontDown = CYAN;
+        end
+        if 1
+            n = 10;
+            frontObject = YELLOW;
+        end
+        map(x+1:x+2,y+3) = left;
+        map(x+1:x+2,y-2) = right;
+        map(x+3,y:y+1) = frontDown;
+        map(x+4:x+n,y:y+1) = frontObject;
+    end
+    
+    updatedMap = map;
 end
