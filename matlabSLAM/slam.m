@@ -1,3 +1,4 @@
+%Map variables to colors.
 global UNKNOWN;
 global CARCRITICAL;
 global CARBODY;
@@ -21,6 +22,7 @@ main()
 
 
 function main();
+    %Retrieve global variables
     global UNKNOWN;
     global CARCRITICAL;
     global CARBODY;
@@ -30,6 +32,10 @@ function main();
     global EDGE;
     global OBJECT;
     
+    %Maps numbers to colors
+    %When 1 it is interpreted as 0,0,0 (Black)
+    %When 2 it is interpreted as 1,0,0 (Red)
+    %And so on
     mapColor = [0,0,0
            1,0,0
            0,0,1
@@ -38,22 +44,46 @@ function main();
            1,0,1
            1,1,0
            1,1,1];
+    %Sets the color on
+    %Used when image function interprets integers
+    %as colors.
     colormap(mapColor);
     
+    %Creates a map 100 x 100 map and sets all values
+    %to UNKNOWK value.
     map(1:100,1:100) = UNKNOWN;
+    
+    %Sets starting coordinate of the car as 50,50
+    %or center of image.
     x = 50;
     y = 50;
+    
+    %Sets blocks under car body as terrain.
     map = initMap(x,y,map);
+    
+    %Shows the map with car using image.
     showMap(x,y,map);
+    
+    %Move 40 blocks in positive X
     for i = 1:40
+        %Wait one second.
         pause(1);
+        %Update map according to what uSonic sensors
+        %see.
         map = updateMap(x+i,y+i,map);
+        %Display the updated map using new position
+        %of car.
         showMap(x+i,y+i,map);
     end
 end
 
 
-
+%Takes in position of car and current map
+%and displays the map with the car on top.
+%@param x X-coordinate of the car.
+%@param y Y-coordinate of the car.
+%@param map Current map of the world contains
+%no information about the car.
 function showMap(x,y,map);
     global UNKNOWN;
     global CARCRITICAL;
@@ -98,6 +128,8 @@ function showMap(x,y,map);
   
 end
 
+%Sets the value of the blocks under the car body
+%to be terrain.
 function updatedMap = initMap(x,y,map);
     global UNKNOWN;
     global CARCRITICAL;
@@ -126,6 +158,8 @@ function updatedMap = initMap(x,y,map);
     updatedMap = map;
 end
 
+%Change update the values of the blocks that the 
+%uSonic sensors see.
 function updatedMap = updateMap(x,y,map);
     global UNKNOWN;
     global CARCRITICAL;
