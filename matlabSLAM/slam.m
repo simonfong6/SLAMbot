@@ -106,27 +106,28 @@ function updatedMap = updateMap(x,y,map)
     CYAN = 5; %Ocean/Edge
     YELLOW = 7; %No Object
     
+    if 1
+        left = GREEN;
+    else
+        left = CYAN;
+    end
+    if 1
+        right = GREEN;
+    else
+        right = CYAN;
+    end
+    if 1
+        frontDown = GREEN;
+    else
+        frontDown = CYAN;
+    end
+    if 1
+        n = 10;
+        frontObject = YELLOW;
+    end
+    
     dir = POSX;
     if dir == POSX
-        if 1
-            left = GREEN;
-        else
-            left = CYAN;
-        end
-        if 1
-            right = GREEN;
-        else
-            right = CYAN;
-        end
-        if 1
-            frontDown = GREEN;
-        else
-            frontDown = CYAN;
-        end
-        if 1
-            n = 10;
-            frontObject = YELLOW;
-        end
         map(x+1:x+2,y+3) = left;
         map(x+1:x+2,y-2) = right;
         map(x+3,y:y+1) = frontDown;
