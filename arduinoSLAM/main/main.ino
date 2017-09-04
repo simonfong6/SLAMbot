@@ -54,23 +54,23 @@ void rotateRightBoth(int turningTime){
 }
 
 //Defining and left and right ultrasonic pins
-#define LEFT_BOTTOM_ECHO_PIN 33
-#define LEFT_BOTTOM_TRIG_PIN 32
+#define LEFT_BOTTOM_ECHO_PIN 30
+#define LEFT_BOTTOM_TRIG_PIN 31
 
-#define RIGHT_BOTTOM_ECHO_PIN 30
-#define RIGHT_BOTTOM_TRIG_PIN 31
+#define RIGHT_BOTTOM_ECHO_PIN 33
+#define RIGHT_BOTTOM_TRIG_PIN 32
 
 //Maximum amount of times that the car will try to turn before it becomes a failed turn.
 #define MAX_TURNING_ITERATIONS 100
 
 //Tolerance of angle for turning.
-#define ANGLE_TOLERANCE (PI/2/20)
+#define ANGLE_TOLERANCE (PI/2/100)
 
 //Amount of milliseconds to initially turn.
-#define INITIAL_TURNING_TIME 1000
+#define INITIAL_TURNING_TIME 50
 
 //Amount of milliseconds to decrement turning time.
-#define TURNING_TIME_CHANGE 10
+#define TURNING_TIME_CHANGE 1
 
 //Flag to check if bot is turning.
 //Need to update in turn function.
@@ -122,9 +122,14 @@ bool turnBoth(double targetAngle){
     //Detects if there is a left or right edge.
     bool isLeftEdge = detectsEdge(leftBottomDistance);
     bool isRightEdge = detectsEdge(rightBottomDistance);
-
+    
     //If there is a left or right edge return false, indicating that turn failed.
-    if(isLeftEdge || isRightEdge){
+    if(isLeftEdge && turningLeft){
+      turning = false;
+      return false;
+    }
+
+    if(isRightEdge && !turningLeft){
       turning = false;
       return false;
     }
@@ -280,11 +285,11 @@ void encoderLeftDist(){
 #define FORWARD_BOTTOM_ECHO_PIN 39
 #define FORWARD_BOTTOM_TRIG_PIN 38
 
-#define LEFT_BOTTOM_ECHO_PIN 33
-#define LEFT_BOTTOM_TRIG_PIN 32
+#define LEFT_BOTTOM_ECHO_PIN 30
+#define LEFT_BOTTOM_TRIG_PIN 31
 
-#define RIGHT_BOTTOM_ECHO_PIN 30
-#define RIGHT_BOTTOM_TRIG_PIN 31
+#define RIGHT_BOTTOM_ECHO_PIN 33
+#define RIGHT_BOTTOM_TRIG_PIN 32
 
 //Defining pins for front facing ultrasonic sensors.
 //Used for detecting objects.
