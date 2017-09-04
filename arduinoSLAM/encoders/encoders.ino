@@ -1,7 +1,7 @@
 // Define wheel dimensions in terms of meters. eg. 0.0325 m or 3.25 cm.
 #define WHEELRADIUS 0.0325                //3.25 cm
 #define CIRCUMFERENCE (2*PI*WHEELRADIUS)    //20.42 cm
-#define (TICK CIRCUMFERENCE/8)              //2.55 cm
+#define TICK (CIRCUMFERENCE/8)              //2.55 cm
 
 //Digital pins that can use interrupts.
 //Wheel encoder pins.

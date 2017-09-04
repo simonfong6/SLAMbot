@@ -62,19 +62,21 @@ function main();
     map = initMap(x,y,map);
     
     %Shows the map with car using image.
-    showMap(x,y,map);
+    image(map);
+    figure;
+    %showMap(x,y,map);
     
     %Move 40 blocks in positive X
-    for i = 1:40
-        %Wait one second.
-        pause(1);
-        %Update map according to what uSonic sensors
-        %see.
-        map = updateMap(x+i,y+i,map);
-        %Display the updated map using new position
-        %of car.
-        showMap(x+i,y+i,map);
-    end
+%     for i = 1:40
+%         %Wait one second.
+%         pause(1);
+%         %Update map according to what uSonic sensors
+%         %see.
+%         map = updateMap(x+i,y+i,map);
+%         %Display the updated map using new position
+%         %of car.
+%         showMap(x+i,y+i,map);
+%     end
 end
 
 

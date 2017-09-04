@@ -21,6 +21,21 @@ void loop() {
 
 }
 
+void moveForward(){
+	leftMotor->run(FORWARD);
+	rightMotor->run(FORWARD);
+}
+
+void moveBackward(){
+	leftMotor->run(BACKWARD);
+	rightMotor->run(BACKWARD);
+}
+
+void motorStop(){
+	leftMotor->run(RELEASE);
+	rightMotor->run(RELEASE);
+}
+
 void testAllTurns(){
   turnLeftLeftOnly();
   wait();

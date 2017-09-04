@@ -4,7 +4,8 @@ void setup() {
 }
 
 void loop() {
-  Serial1.println("Hello World!");
+  
+  Serial1.println("I love big fat nuts");
 }
 
 void setupBluetooth(){
