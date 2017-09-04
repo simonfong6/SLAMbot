@@ -6,11 +6,11 @@
 #define FORWARD_BOTTOM_ECHO_PIN 39
 #define FORWARD_BOTTOM_TRIG_PIN 38
 
-#define LEFT_BOTTOM_ECHO_PIN 33
-#define LEFT_BOTTOM_TRIG_PIN 32
+#define LEFT_BOTTOM_ECHO_PIN 30
+#define LEFT_BOTTOM_TRIG_PIN 31
 
-#define RIGHT_BOTTOM_ECHO_PIN 30
-#define RIGHT_BOTTOM_TRIG_PIN 31
+#define RIGHT_BOTTOM_ECHO_PIN 33
+#define RIGHT_BOTTOM_TRIG_PIN 32
 
 //Defining pins for front facing ultrasonic sensors.
 //Used for detecting objects.
