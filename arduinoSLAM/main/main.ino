@@ -31,25 +31,138 @@ void motorStop(){
   rightMotor->run(RELEASE);
 }
 
-//Turns left using both wheels.
-void turnLeftBoth(){
+//Rotates left using both wheels.
+void rotateLeftBoth(int turningTime){
   leftMotor->run(BACKWARD);
   rightMotor->run(FORWARD);
-  delay(1800);
+  
+  delay(turningTime);
 
   leftMotor->run(RELEASE);
   rightMotor->run(RELEASE);
 }
 
-//Turns right using both wheels.
-void turnRightBoth(){
+//Rotates right using both wheels.
+void rotateRightBoth(int turningTime){
   leftMotor->run(FORWARD);
   rightMotor->run(BACKWARD);
-  delay(1800);
+  
+  delay(turningTime);
 
   leftMotor->run(RELEASE);
   rightMotor->run(RELEASE);
 }
+
+//Defining and left and right ultrasonic pins
+#define LEFT_BOTTOM_ECHO_PIN 33
+#define LEFT_BOTTOM_TRIG_PIN 32
+
+#define RIGHT_BOTTOM_ECHO_PIN 30
+#define RIGHT_BOTTOM_TRIG_PIN 31
+
+//Maximum amount of times that the car will try to turn before it becomes a failed turn.
+#define MAX_TURNING_ITERATIONS 100
+
+//Tolerance of angle for turning.
+#define ANGLE_TOLERANCE (PI/2/20)
+
+//Amount of milliseconds to initially turn.
+#define INITIAL_TURNING_TIME 1000
+
+//Amount of milliseconds to decrement turning time.
+#define TURNING_TIME_CHANGE 10
+
+//Flag to check if bot is turning.
+//Need to update in turn function.
+bool turning = false;
+
+//Turns to desired angle in radians using both wheels.
+bool turnBoth(double targetAngle){
+
+  turning = true;
+
+  double minAngleBound = targetAngle - ANGLE_TOLERANCE;
+  double maxAngleBound = targetAngle + ANGLE_TOLERANCE;
+
+  int turningTime = INITIAL_TURNING_TIME;
+
+  bool turningLeft = false;
+  
+  for(int i = 0; i < MAX_TURNING_ITERATIONS; i++){
+    double currentAngle = gyroRead();
+
+    //Check if car is at target angle within tolerance.
+    if( (currentAngle > minAngleBound) && (currentAngle < maxAngleBound) ){
+      turning = false;
+      return true;
+    }
+    //If the angle is too low rotate left.
+    else if(currentAngle <= minAngleBound){
+      if( !turningLeft ){
+        turningTime -= TURNING_TIME_CHANGE;
+        turningLeft = true;
+      }
+      rotateLeftBoth(turningTime);
+    }
+    //If the angle is too high rotate right.
+    else if(currentAngle >= maxAngleBound){
+      if( turningLeft ){
+        turningTime -= TURNING_TIME_CHANGE;
+        turningLeft = false;
+      }
+      rotateRightBoth(turningTime);
+    }else{
+      Serial1.println("Error in turning left.");
+    }
+
+    //Read left and right distances from ultrasonic sensors.
+    double leftBottomDistance = readUltraSonic(LEFT_BOTTOM_TRIG_PIN, LEFT_BOTTOM_ECHO_PIN);
+    double rightBottomDistance = readUltraSonic(RIGHT_BOTTOM_TRIG_PIN, RIGHT_BOTTOM_ECHO_PIN);
+
+    //Detects if there is a left or right edge.
+    bool isLeftEdge = detectsEdge(leftBottomDistance);
+    bool isRightEdge = detectsEdge(rightBottomDistance);
+
+    //If there is a left or right edge return false, indicating that turn failed.
+    if(isLeftEdge || isRightEdge){
+      turning = false;
+      return false;
+    }
+  }
+
+  turning = false;
+  
+  //If maximum iterations has been reached and angle is still not within tolerance.
+  return false;
+}
+
+bool turnLeftBoth(){
+  double currentAngle = gyroRead();
+  double targetAngle = currentAngle + PI/2;
+
+  bool success = turnBoth(targetAngle);
+  if(!success){
+    //If turn failed, turn back to original angle.
+    turnBoth(currentAngle);
+  }
+
+  return success;
+}
+
+bool turnRightBoth(){
+  double currentAngle = gyroRead();
+  double targetAngle = currentAngle - PI/2;
+
+  bool success = turnBoth(targetAngle);
+  if(!success){
+    //If turn failed, turn back to original angle.
+    turnBoth(currentAngle);
+  }
+
+  return success;
+}
+
+
 
 #include <Adafruit_LSM9DS0.h>
 
@@ -112,10 +225,6 @@ double gyroRead() {
 #define LEFT_ENCODER_PIN 3 // Interrupt pin for the left wheel encoder
 #define RIGHT_ENCODER_PIN 2 // Interrupt pin for the right wheel encoder
 
-
-//Flag to check if bot is turning.
-//Need to update in turn function.
-bool turning = false;
 
 //Position data for left encoder.
 int leftWheelTicks = 0;
@@ -232,21 +341,125 @@ void setup(){
   
 }
 
+//Processing data and command functions.
+#define TABLE_DISTANCE 0.10
+#define OBJECT_DANGER_DISTANCE 0.10
+
+bool STOP = false;
+
+/*
+ * Tells if an edge was detected.
+ * @param distanceAway Distance that ultrasonic sensor measures. 
+ * @return true if there is an edge, false otherwise.
+  */
+bool detectsEdge(double distanceAway){
+  if(distanceAway > TABLE_DISTANCE){
+    return true;
+  }else{
+    return false;
+  }
+}
+
+/*
+ * Tells if an object was detected.
+ * @param distanceAway Distance that ultrasonic sensor measures. 
+ * @return true if there is an object, false otherwise.
+  */
+bool detectsObject(double distanceAway){
+  if(distanceAway < TABLE_DISTANCE){
+    return true;
+  }else{
+    return false;
+  }
+}
+
+/*
+ * Reads command from Matlab and rotates car according to command.
+ * If the command is 'STOP' the car stops and everything is disabled.
+ */
+void readCommand(){
+  while( !(Serial1.available() > 0) ){
+  }
+  String command = Serial1.readString();
+
+  if(command == "LEFT"){
+    bool success = turnLeftBoth();
+    if(success){
+      Serial1.println("SUCCESS");
+    }else{
+      Serial1.println("FAIL");
+      readCommand();
+    }
+  }else if(command == "RIGHT"){
+    bool success = turnRightBoth();
+    if(success){
+      Serial1.println("SUCCESS");
+    }else{
+      Serial1.println("FAIL");
+      readCommand();
+    }
+  }else if(command == "STOP"){
+    motorStop();
+    STOP = true;
+  }else{
+    motorStop();
+    Serial1.println("Error in commands.");
+  }
+}
+
 void loop(){
+  if(STOP){
+    return;
+  }
+  //Get current the current angle that car is facing.
   double currentAngle = gyroRead();
-  
+
+  //Get distance that ultrasonics are reading.
   double forwardBottomDistance = readUltraSonic(FORWARD_BOTTOM_TRIG_PIN, FORWARD_BOTTOM_ECHO_PIN);
   double leftBottomDistance = readUltraSonic(LEFT_BOTTOM_TRIG_PIN, LEFT_BOTTOM_ECHO_PIN);
   double rightBottomDistance = readUltraSonic(RIGHT_BOTTOM_TRIG_PIN, RIGHT_BOTTOM_ECHO_PIN);
   double forwardFrontDistance = readUltraSonic(FORWARD_FRONT_TRIG_PIN, FORWARD_FRONT_ECHO_PIN);
 
+  //Get number of ticks that wheels have traveled since last turn.
   int leftWheelTicksAgain = leftWheelTicks;
   int rightWheelTicksAgain = rightWheelTicks;
 
-  moveForward();
-  if(forwardBottomDistance > 0.10 || forwardFrontDistance < 0.10){
-    motorStop();
+  //Checks for forward edge and forward object.
+  bool isForwardEdge = detectsEdge(forwardBottomDistance);
+  bool isForwardObject = detectsObject(forwardFrontDistance);
+
+  //If there is no edge in front AND there is no object in front, keep moving forward.
+  if(!isForwardEdge && !isForwardObject){
+    moveForward();
   }
+  //If there is an edge OR object in front of the car, do the following code.
+  else{
+    motorStop();
+    if(isForwardEdge){
+      Serial1.print("OBJECT");
+    }
+    else if(isForwardObject){
+      Serial1.print("EDGE");
+    }
+    else{
+      Serial1.println("Error in detecting edge or object.");
+    }
+
+    //Send wheel ticks to Matlab.
+    Serial1.print(",");
+    Serial1.print(leftWheelTicks);
+    Serial1.print(",");
+    Serial1.println(rightWheelTicks);
+
+    //Resets wheel ticks recorded.
+    leftWheelTicks = 0;
+    rightWheelTicks = 0;
+
+    //Reads a command from matlab and turns in direction received.
+    readCommand();
+
+  }
+  //Return to beginning of loop again.
 }
 
 
