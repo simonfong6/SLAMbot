@@ -89,7 +89,12 @@ bool turnBoth(double targetAngle){
   bool turningLeft = false;
   
   for(int i = 0; i < MAX_TURNING_ITERATIONS; i++){
+    
     double currentAngle = gyroRead();
+    Serial.print("Turning, ");
+    Serial.print(targetAngle);
+    Serial.print(", ");
+    Serial.println(currentAngle);
 
     //Check if car is at target angle within tolerance.
     if( (currentAngle > minAngleBound) && (currentAngle < maxAngleBound) ){
@@ -112,7 +117,7 @@ bool turnBoth(double targetAngle){
       }
       rotateRightBoth(turningTime);
     }else{
-      Serial1.println("Error in turning left.");
+      Serial.println("Error in turning left.");
     }
 
     //Read left and right distances from ultrasonic sensors.
@@ -125,16 +130,22 @@ bool turnBoth(double targetAngle){
     
     //If there is a left or right edge return false, indicating that turn failed.
     if(isLeftEdge && turningLeft){
+      Serial.println("Left rotation fail");
+      Serial.println("Left rotation fail");
       turning = false;
       return false;
     }
 
     if(isRightEdge && !turningLeft){
+      Serial.println("Right rotation fail");
+      Serial.println("Right rotation fail");
       turning = false;
       return false;
     }
   }
 
+  Serial.println("Max turning iterations fail.");
+  Serial.println("Max turning iterations fail.");
   turning = false;
   
   //If maximum iterations has been reached and angle is still not within tolerance.
@@ -216,7 +227,7 @@ double gyroRead() {
     
     prev_time = millis();
 
-    return (int(anglez) % (360)) * (PI / 180);
+    return (int(anglez)) * (PI / 180);
 
 }
 
@@ -328,9 +339,9 @@ double readUltraSonic(int TRIG_PIN, int ECHO_PIN){
 }
 
 void setupBluetooth(){
-  Serial1.begin(9600);
+  Serial.begin(9600);
   #ifndef ESP8266
-    while(!Serial1);     // will pause Zero, Leonardo, etc until Serial1 console opens
+    while(!Serial);     // will pause Zero, Leonardo, etc until Serial1 console opens
   #endif
 }
 
@@ -343,7 +354,13 @@ void setup(){
   setupEncoders();
   setupUltraSonics();
   setupBluetooth();
-  
+
+  while( !(Serial.available() > 0) ){
+
+  }
+  String start = Serial.readString();
+
+  Serial.println("Starting");
 }
 
 //Processing data and command functions.
@@ -383,32 +400,51 @@ bool detectsObject(double distanceAway){
  * If the command is 'STOP' the car stops and everything is disabled.
  */
 void readCommand(){
-  while( !(Serial1.available() > 0) ){
+  while( !(Serial.available() > 0) ){
   }
-  String command = Serial1.readString();
+  String command = Serial.readString();
+  command.replace('\n', '\0');
+  Serial.print("...");
+  Serial.print(command);
+  Serial.print("...");
+  Serial.println("|");
 
   if(command == "LEFT"){
+    Serial.println("Turning left");
     bool success = turnLeftBoth();
+    Serial.print("CONFIRMATION");
+    Serial.print(",");
+    Serial.println(success);
     if(success){
-      Serial1.println("SUCCESS");
+      Serial.print("SUCCESS");
+      Serial.println("SUCCESS");
     }else{
-      Serial1.println("FAIL");
+      Serial.print("FAIL");
+      Serial.println("FAIL");
       readCommand();
     }
   }else if(command == "RIGHT"){
     bool success = turnRightBoth();
+    Serial.print("CONFIRMATION");
+    Serial.print(",");
     if(success){
-      Serial1.println("SUCCESS");
+      Serial.println("SUCCESS");
     }else{
-      Serial1.println("FAIL");
+      Serial.println("FAIL");
       readCommand();
     }
-  }else if(command == "STOP"){
+  }else if(command == "REVERSE"){
+    moveBackward();
+    delay(1000);
+  }
+  else if(command == "STOP"){
     motorStop();
     STOP = true;
+    Serial.println("STOP IGNORE THISm");
   }else{
+    STOP = true;
     motorStop();
-    Serial1.println("Error in commands.");
+    Serial.println("Error in commands.");
   }
 }
 
@@ -431,30 +467,40 @@ void loop(){
 
   //Checks for forward edge and forward object.
   bool isForwardEdge = detectsEdge(forwardBottomDistance);
+  bool isLeftEdge = detectsEdge(leftBottomDistance);
+  bool isRightEdge = detectsEdge(rightBottomDistance);
   bool isForwardObject = detectsObject(forwardFrontDistance);
 
   //If there is no edge in front AND there is no object in front, keep moving forward.
-  if(!isForwardEdge && !isForwardObject){
+  if(!isForwardEdge && !isLeftEdge && !isRightEdge && !isForwardObject){
     moveForward();
   }
   //If there is an edge OR object in front of the car, do the following code.
   else{
     motorStop();
+    Serial.print("SPACE");
+    Serial.print(",");
     if(isForwardEdge){
-      Serial1.print("OBJECT");
+      Serial.print("FORWARDEDGE");
+    }
+    else if(isLeftEdge){
+      Serial.print("LEFTEDGE");
+    }
+    else if(isRightEdge){
+      Serial.print("RIGHTEDGE");
     }
     else if(isForwardObject){
-      Serial1.print("EDGE");
+      Serial.print("OBJECT");
     }
     else{
-      Serial1.println("Error in detecting edge or object.");
+      Serial.println("Error in detecting edge or object.");
     }
 
     //Send wheel ticks to Matlab.
-    Serial1.print(",");
-    Serial1.print(leftWheelTicks);
-    Serial1.print(",");
-    Serial1.println(rightWheelTicks);
+    Serial.print(",");
+    Serial.print(leftWheelTicks);
+    Serial.print(",");
+    Serial.println(rightWheelTicks);
 
     //Resets wheel ticks recorded.
     leftWheelTicks = 0;
